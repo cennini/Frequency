@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frequenza</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        #status { color: red; margin-top: 20px; }
+        #freq { font-size: 3em; font-weight: bold; color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Analizzatore Hertz</h1>
+    <button id="startBtn" style="padding: 20px; font-size: 1.2em;">AVVIA MICROFONO</button>
+    
+    <div style="margin-top: 30px;">
+        <span id="freq">0</span> Hz
+    </div>
+    
+    <p id="status">Stato: In attesa di avvio...</p>
+
+    <script>
+    const startBtn = document.getElementById('startBtn');
+    const freqDisplay = document.getElementById('freq');
+    const statusDisplay = document.getElementById('status');
+
+    startBtn.onclick = async () => {
+        statusDisplay.innerText = "Stato: Richiesta accesso microfono...";
+        
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            
+            analyser.fftSize = 2048;
+            source.connect(analyser);
+            
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            statusDisplay.innerText = "Stato: In ascolto!";
+            statusDisplay.style.color = "green";
+
+            function update() {
+                analyser.getByteFrequencyData(dataArray);
+                let maxVal = -1;
+                let maxIndex = -1;
+                
+                for (let i = 0; i < dataArray.length; i++) {
+                    if (dataArray[i] > maxVal) {
+                        maxVal = dataArray[i];
+                        maxIndex = i;
+                    }
+                }
+                
+                const hz = maxIndex * audioCtx.sampleRate / analyser.fftSize;
+                freqDisplay.innerText = Math.round(hz);
+                requestAnimationFrame(update);
+            }
+            update();
+            
+        } catch (err) {
+            statusDisplay.innerText = "Errore: " + err.message;
+            console.error(err);
+        }
+    };
+    </script>
+</body>
+</html>
 ﻿﻿
