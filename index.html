@@ -70,7 +70,33 @@
                 requestAnimationFrame(update);
             }
             
-            update();
+            function update() {
+    analyser.getFloatFrequencyData(dataArray);
+    
+    let threshold = -70; // Sensibilità: ignora i rumori sotto i -70dB
+    let detectedFreq = 0;
+
+    // Cerchiamo il PRIMO picco significativo partendo dalle frequenze basse (80Hz)
+    // Invece di cercare il valore massimo assoluto (che spesso è un'armonica)
+    for (let i = 0; i < bufferLength; i++) {
+        let freq = i * audioCtx.sampleRate / analyser.fftSize;
+        
+        if (freq > 75 && freq < 1000) { 
+            // Se troviamo un picco che supera la soglia e i suoi vicini
+            if (dataArray[i] > threshold && dataArray[i] > dataArray[i-1] && dataArray[i] > dataArray[i+1]) {
+                detectedFreq = freq;
+                break; // IMPORTANTE: ci fermiamo al primo picco che troviamo!
+            }
+        }
+    }
+
+    if (detectedFreq > 0) {
+        freqDisplay.innerText = detectedFreq.toFixed(1);
+    }
+    
+    requestAnimationFrame(update);
+}
+
             
         } catch (err) {
             statusDisplay.innerText = "Errore: " + err.message;
