@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accordatore Chitarra</title>
+    <title>Accordatore di Precisione</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f0f0; }
-        #freq { font-size: 4em; font-weight: bold; color: #2c3e50; display: block; margin: 20px 0; }
-        button { padding: 15px 30px; font-size: 1.2em; cursor: pointer; background: #27ae60; color: white; border: none; border-radius: 5px; }
-        #status { color: #7f8c8d; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px; background: #2c3e50; color: white; }
+        .container { background: #34495e; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: inline-block; min-width: 300px; }
+        #freq { font-size: 5em; font-weight: bold; color: #2ecc71; margin: 20px 0; display: block; font-variant-numeric: tabular-nums; }
+        button { padding: 15px 40px; font-size: 1.2em; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 50px; transition: 0.3s; font-weight: bold; }
+        button:hover { background: #c0392b; transform: scale(1.05); }
+        #status { color: #bdc3c7; font-style: italic; margin-top: 20px; }
+        .unit { font-size: 0.4em; color: #95a5a6; }
     </style>
 </head>
 <body>
 
-    <h1>Rilevatore Frequenza</h1>
-    <button id="startBtn">ATTIVA MICROFONO</button>
-    
-    <div>
-        <span id="freq">0.0</span> Hz
+    <div class="container">
+        <h1>Frequenza Audio</h1>
+        <button id="startBtn">AVVIA ACCORDATORE</button>
+        
+        <div>
+            <span id="freq">0.0<span class="unit">Hz</span></span>
+        </div>
+        
+        <p id="status">Il microfono è spento</p>
     </div>
-    
-    <p id="status">Clicca sul pulsante per iniziare</p>
 
     <script>
     const startBtn = document.getElementById('startBtn');
@@ -34,7 +39,7 @@
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
             
-            // Alta risoluzione per catturare bene i 110Hz della chitarra
+            // Alta risoluzione per le basse frequenze (110Hz della chitarra)
             analyser.fftSize = 8192; 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Float32Array(bufferLength);
@@ -42,64 +47,61 @@
             source.connect(analyser);
             
             statusDisplay.innerText = "In ascolto... Suona una corda";
-            startBtn.style.display = "none"; // Nasconde il tasto dopo l'avvio
+            startBtn.style.display = "none";
 
             function update() {
                 analyser.getFloatFrequencyData(dataArray);
                 
-                let maxDb = -Infinity;
-                let maxIndex = -1;
-
-                // Filtro: cerchiamo solo nel range tipico della chitarra
+                // 1. Trova il volume massimo attuale
+                let maxVolume = -Infinity;
                 for (let i = 0; i < bufferLength; i++) {
-                    let freq = i * audioCtx.sampleRate / analyser.fftSize;
-                    if (freq > 70 && freq < 1000) { 
-                        if (dataArray[i] > maxDb) {
-                            maxDb = dataArray[i];
-                            maxIndex = i;
+                    if (dataArray[i] > maxVolume) maxVolume = dataArray[i];
+                }
+
+                let detectedFreq = 0;
+
+                // 2. Se il suono è udibile, cerca la fondamentale
+                if (maxVolume > -85) {
+                    // Soglia dinamica per isolare i picchi
+                    let threshold = maxVolume - 8; 
+
+                    for (let i = 4; i < bufferLength - 4; i++) {
+                        let freq = i * audioCtx.sampleRate / analyser.fftSize;
+                        
+                        // Limitiamo il campo alla chitarra (70Hz - 1000Hz)
+                        if (freq > 70 && freq < 1100) {
+                            // Cerca il PRIMO picco che svetta rispetto ai vicini
+                            if (dataArray[i] > threshold && 
+                                dataArray[i] > dataArray[i-1] && 
+                                dataArray[i] > dataArray[i-2] &&
+                                dataArray[i] > dataArray[i+1] && 
+                                dataArray[i] > dataArray[i+2]) {
+                                
+                                // Interpolazione parabolica per maggiore precisione
+                                let y1 = dataArray[i-1];
+                                let y2 = dataArray[i];
+                                let y3 = dataArray[i+1];
+                                let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
+                                
+                                detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
+                                break; // Esce al primo picco (la fondamentale)
+                            }
                         }
                     }
                 }
 
-                // Visualizza solo se il suono è abbastanza forte (evita rumore di fondo)
-                if (maxDb > -70) {
-                    const finalFreq = maxIndex * audioCtx.sampleRate / analyser.fftSize;
-                    freqDisplay.innerText = finalFreq.toFixed(1);
+                if (detectedFreq > 0) {
+                    freqDisplay.innerHTML = detectedFreq.toFixed(1) + '<span class="unit">Hz</span>';
                 }
                 
                 requestAnimationFrame(update);
             }
             
-            function update() {
-    analyser.getFloatFrequencyData(dataArray);
-    
-    let threshold = -70; // Sensibilità: ignora i rumori sotto i -70dB
-    let detectedFreq = 0;
-
-    // Cerchiamo il PRIMO picco significativo partendo dalle frequenze basse (80Hz)
-    // Invece di cercare il valore massimo assoluto (che spesso è un'armonica)
-    for (let i = 0; i < bufferLength; i++) {
-        let freq = i * audioCtx.sampleRate / analyser.fftSize;
-        
-        if (freq > 75 && freq < 1000) { 
-            // Se troviamo un picco che supera la soglia e i suoi vicini
-            if (dataArray[i] > threshold && dataArray[i] > dataArray[i-1] && dataArray[i] > dataArray[i+1]) {
-                detectedFreq = freq;
-                break; // IMPORTANTE: ci fermiamo al primo picco che troviamo!
-            }
-        }
-    }
-
-    if (detectedFreq > 0) {
-        freqDisplay.innerText = detectedFreq.toFixed(1);
-    }
-    
-    requestAnimationFrame(update);
-}
-
+            update();
             
         } catch (err) {
-            statusDisplay.innerText = "Errore: " + err.message;
+            statusDisplay.innerText = "Errore: " + (err.name === 'NotAllowedError' ? "Accesso negato al microfono" : err.message);
+            statusDisplay.style.color = "#e74c3c";
         }
     };
     </script>
