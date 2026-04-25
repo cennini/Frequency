@@ -5,30 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accordatore di Precisione</title>
 <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px; background: #2c3e50; color: white; }
-    .container { background: #34495e; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: inline-block; min-width: 300px; }
-    
-    /* Nuovi stili per il titolo ReGuitar */
-    h1 { 
-        font-family: 'Mistral', 'Brush Script MT', cursive; 
-        font-size: 4em; 
-        color: #ecf0f1; 
-        margin-top: 0;
-        letter-spacing: 2px;
-    }
+    .logo-container {
+    margin-bottom: 10px;
+}
 
-    #freq { font-size: 5em; font-weight: bold; color: #2ecc71; margin: 20px 0; display: block; font-variant-numeric: tabular-nums; }
-    button { padding: 15px 40px; font-size: 1.2em; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 50px; transition: 0.3s; font-weight: bold; }
-    button:hover { background: #c0392b; transform: scale(1.05); }
-    #status { color: #bdc3c7; font-style: italic; margin-top: 20px; }
-    .unit { font-size: 0.4em; color: #95a5a6; }
+#logo {
+    max-width: 280px; /* Regola la grandezza del logo qui */
+    height: auto;
+    /* Rimuovi la riga sotto se vuoi il logo nero originale */
+    /* filter: brightness(0) invert(1);  */
+}
+
 </style>
     
 </head>
 <body>
 
     <div class="container">
-       <h1>ReGuitar</h1>
+       <div class="logo-container">
+    <img src="Logo_nero_trasparente_noslogan_piccolo_noguitar.png" alt="ReGuitar" id="logo">
+</div>
+
         <button id="startBtn">AVVIA ACCORDATORE</button>
         
         <div>
