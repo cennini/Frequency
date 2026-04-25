@@ -61,39 +61,34 @@
                 let detectedFreq = 0;
 
                 // 2. Se il suono è udibile, cerca la fondamentale
-                if (maxVolume > -85) {
-                    // Usiamo una soglia molto vicina al massimo per isolare solo i picchi reali
-                    let threshold = maxVolume - 5; 
+                // ... (dentro la funzione update del tuo script)
 
-                    for (let i = 4; i < bufferLength - 4; i++) {
-                        let freq = i * audioCtx.sampleRate / analyser.fftSize;
-                        
-                        // Limitiamo il campo alla chitarra (70Hz - 1000Hz)
-                        if (freq > 70 && freq < 1000) {
-                            // Se troviamo un picco che supera la soglia...
-                            if (dataArray[i] > threshold && 
-                                dataArray[i] > dataArray[i-1] && 
-                                dataArray[i] > dataArray[i+1]) {
-                                
-                                // Se abbiamo già trovato una frequenza valida in questo ciclo,
-                                // non sovrascriverla con armoniche più alte (es. 293 o 328)
-                                if (detectedFreq === 0) {
-                                    // Interpolazione per stabilità
-                                    let y1 = dataArray[i-1];
-                                    let y2 = dataArray[i];
-                                    let y3 = dataArray[i+1];
-                                    let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-                                    
-                                    detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
-                                    
-                                    // TRUCCO: Se la frequenza trovata è valida, interrompiamo subito la ricerca
-                                    // così le armoniche superiori non vengono nemmeno analizzate.
-                                    break; 
-                                }
-                            }
-                        }
-                    }
+// 2. Se il suono è udibile, cerca la fondamentale
+if (maxVolume > -85) {
+    let threshold = maxVolume - 5; 
+
+    for (let i = 4; i < bufferLength - 4; i++) {
+        let freq = i * audioCtx.sampleRate / analyser.fftSize;
+        
+        // MODIFICA QUI: Alzato il limite da 1000 a 2000Hz
+        if (freq > 70 && freq < 2000) { 
+            if (dataArray[i] > threshold && 
+                dataArray[i] > dataArray[i-1] && 
+                dataArray[i] > dataArray[i+1]) {
+                
+                if (detectedFreq === 0) {
+                    let y1 = dataArray[i-1];
+                    let y2 = dataArray[i];
+                    let y3 = dataArray[i+1];
+                    let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
+                    
+                    detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
+                    break; 
                 }
+            }
+        }
+    }
+}
 
 
                 if (detectedFreq > 0) {
