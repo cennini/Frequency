@@ -3,28 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accordatore di Precisione</title>
-<style>
-    .logo-container {
-    margin-bottom: 10px;
-}
+    <title>Accordatore ReGuitar</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            padding: 40px; 
+            background: #2c3e50; 
+            color: white; 
+        }
+        
+        .container { 
+            background: #34495e; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            display: inline-block; 
+            min-width: 320px; 
+        }
 
-#logo {
-    max-width: 280px; /* Regola la grandezza del logo qui */
-    height: auto;
-    /* Rimuovi la riga sotto se vuoi il logo nero originale */
-    /* filter: brightness(0) invert(1);  */
-}
+        .logo-container {
+            margin-bottom: 20px;
+        }
 
-</style>
-    
+        #logo {
+            max-width: 250px;
+            height: auto;
+            /* Se il logo è nero, questa riga lo rende bianco per vederlo su sfondo scuro */
+            filter: brightness(0) invert(1);
+        }
+
+        #freq { 
+            font-size: 5em; 
+            font-weight: bold; 
+            color: #2ecc71; 
+            margin: 20px 0; 
+            display: block; 
+            font-variant-numeric: tabular-nums; 
+        }
+
+        button { 
+            padding: 15px 40px; 
+            font-size: 1.2em; 
+            cursor: pointer; 
+            background: #e74c3c; 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            transition: 0.3s; 
+            font-weight: bold; 
+        }
+        
+        button:hover { 
+            background: #c0392b; 
+            transform: scale(1.05); 
+        }
+
+        #status { 
+            color: #bdc3c7; 
+            font-style: italic; 
+            margin-top: 20px; 
+        }
+
+        .unit { 
+            font-size: 0.4em; 
+            color: #95a5a6; 
+        }
+    </style>
 </head>
 <body>
 
     <div class="container">
-       <div class="logo-container">
-    <img src="Logo_nero_trasparente_noslogan_piccolo_noguitar.png" alt="ReGuitar" id="logo">
-</div>
+        <div class="logo-container">
+            <img src="Logo_nero_trasparente_noslogan_piccolo_noguitar.png" alt="ReGuitar" id="logo">
+        </div>
 
         <button id="startBtn">AVVIA ACCORDATORE</button>
         
@@ -47,7 +99,6 @@
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
             
-            // Alta risoluzione per le basse frequenze (110Hz della chitarra)
             analyser.fftSize = 8192; 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Float32Array(bufferLength);
@@ -60,7 +111,6 @@
             function update() {
                 analyser.getFloatFrequencyData(dataArray);
                 
-                // 1. Trova il volume massimo attuale
                 let maxVolume = -Infinity;
                 for (let i = 0; i < bufferLength; i++) {
                     if (dataArray[i] > maxVolume) maxVolume = dataArray[i];
@@ -68,36 +118,31 @@
 
                 let detectedFreq = 0;
 
-                // 2. Se il suono è udibile, cerca la fondamentale
-                // ... (dentro la funzione update del tuo script)
+                if (maxVolume > -85) {
+                    let threshold = maxVolume - 5; 
 
-// 2. Se il suono è udibile, cerca la fondamentale
-if (maxVolume > -85) {
-    let threshold = maxVolume - 5; 
-
-    for (let i = 4; i < bufferLength - 4; i++) {
-        let freq = i * audioCtx.sampleRate / analyser.fftSize;
-        
-        // MODIFICA QUI: Alzato il limite da 1000 a 2000Hz
-        if (freq > 70 && freq < 2000) { 
-            if (dataArray[i] > threshold && 
-                dataArray[i] > dataArray[i-1] && 
-                dataArray[i] > dataArray[i+1]) {
-                
-                if (detectedFreq === 0) {
-                    let y1 = dataArray[i-1];
-                    let y2 = dataArray[i];
-                    let y3 = dataArray[i+1];
-                    let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-                    
-                    detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
-                    break; 
+                    for (let i = 4; i < bufferLength - 4; i++) {
+                        let freq = i * audioCtx.sampleRate / analyser.fftSize;
+                        
+                        // Range aggiornato per coprire anche i 1270Hz
+                        if (freq > 70 && freq < 2000) {
+                            if (dataArray[i] > threshold && 
+                                dataArray[i] > dataArray[i-1] && 
+                                dataArray[i] > dataArray[i+1]) {
+                                
+                                if (detectedFreq === 0) {
+                                    let y1 = dataArray[i-1];
+                                    let y2 = dataArray[i];
+                                    let y3 = dataArray[i+1];
+                                    let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
+                                    
+                                    detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
+                                    break; 
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
-    }
-}
-
 
                 if (detectedFreq > 0) {
                     freqDisplay.innerHTML = detectedFreq.toFixed(1) + '<span class="unit">Hz</span>';
