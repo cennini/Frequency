@@ -1,162 +1,73 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ReGuitar Trainer</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Posiziona il contenuto verso l'alto */
-            min-height: 100vh;
-            margin: 0;
-            padding-top: 5vh; /* Distanza dal bordo superiore */
-            background: #2c3e50; 
-            color: white; 
-        }
-        
-        .container { 
-            background: #34495e; 
-            padding: 30px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-            width: 90%;
-            max-width: 350px;
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Centra orizzontalmente tutti gli elementi interni */
-        }
-
-        .logo-container {
-            width: 100%;
-            max-width: 250px; /* Stessa larghezza massima del logo per allineare Trainer */
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #logo {
-            width: 100%;
-            height: auto;
-            filter: brightness(0) invert(1); /* Rende il logo bianco */
-        }
-
-        #trainer-text {
-            text-align: right; /* Allinea a destra rispetto al contenitore del logo */
-            font-size: 1.1em;
-            color: white;
-            font-style: italic;
-            margin-top: -5px;
-            letter-spacing: 1px;
-        }
-
-        #freq { 
-            font-size: 5em; 
-            font-weight: bold; 
-            color: #2ecc71; 
-            margin: 20px 0; 
-            font-variant-numeric: tabular-nums; 
-        }
-
-        button { 
-            padding: 15px 40px; 
-            font-size: 1.1em; 
-            cursor: pointer; 
-            background: #e74c3c; 
-            color: white; 
-            border: none; 
-            border-radius: 50px; 
-            transition: 0.3s; 
-            font-weight: bold;
-            width: 100%; /* Pulsante largo per facilità di tocco */
-        }
-        
-        button:hover { 
-            background: #c0392b; 
-            transform: scale(1.02); 
-        }
-
-        #status { 
-            color: #bdc3c7; 
-            font-style: italic; 
-            margin-top: 20px; 
-            font-size: 0.9em;
-        }
-
-        .unit { 
-            font-size: 0.4em; 
-            color: #95a5a6; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding-top: 5vh; background: #2c3e50; color: white; }
+        .container { background: #34495e; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 90%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
+        .logo-container { width: 100%; max-width: 250px; margin-bottom: 20px; display: flex; flex-direction: column; }
+        #logo { width: 100%; height: auto; filter: brightness(0) invert(1); }
+        #trainer-text { text-align: right; font-size: 1.1em; color: white; font-style: italic; margin-top: -5px; letter-spacing: 1px; }
+        #freq { font-size: 5em; font-weight: bold; color: #2ecc71; margin: 15px 0; font-variant-numeric: tabular-nums; }
+        button { padding: 15px 40px; font-size: 1.1em; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 50px; transition: 0.3s; font-weight: bold; width: 100%; }
+        #status { color: #bdc3c7; font-style: italic; margin: 15px 0; font-size: 0.9em; }
+        .unit { font-size: 0.4em; color: #95a5a6; }
+        #reference-list { display: none; width: 100%; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 10px; box-sizing: border-box; }
+        .ref-row { font-family: 'Courier New', monospace; font-size: 0.85em; white-space: pre; line-height: 1.6; color: #ecf0f1; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="logo-container">
             <img src="Logo_nero_trasparente_noslogan_piccolo_noguitar.png" alt="ReGuitar" id="logo">
             <div id="trainer-text">Trainer</div>
         </div>
-
-        <button id="startBtn">AVVIA ACCORDATORE</button>
-        
-        <div id="freq-display">
-            <span id="freq">0.0<span class="unit">Hz</span></span>
+        <button id="startBtn">START TUNER</button>
+        <div><span id="freq">0.0<span class="unit">Hz</span></span></div>
+        <p id="status">Microphone is off</p>
+        <div id="reference-list">
+            <div class="ref-row">1 MI/E (6)  1319.00 Hz</div>
+            <div class="ref-row">2 SI/B (5)   988.00 Hz</div>
+            <div class="ref-row">3 SOL/G(5)   784.00 Hz</div>
+            <div class="ref-row">4 RE/D (5)   587.33 Hz</div>
+            <div class="ref-row">5 LA/A (4)   440.00 Hz</div>
+            <div class="ref-row">6 MI/E (4)   330.00 Hz</div>
         </div>
-        
-        <p id="status">Il microfono è spento</p>
     </div>
-
     <script>
     const startBtn = document.getElementById('startBtn');
     const freqDisplay = document.getElementById('freq');
     const statusDisplay = document.getElementById('status');
-
+    const refList = document.getElementById('reference-list');
     startBtn.onclick = async () => {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
-            
             analyser.fftSize = 8192; 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Float32Array(bufferLength);
-            
             source.connect(analyser);
-            
-            statusDisplay.innerText = "In ascolto...";
+            statusDisplay.innerText = "Listening... Play a string";
             startBtn.style.display = "none";
-
+            refList.style.display = "block"; 
             function update() {
                 analyser.getFloatFrequencyData(dataArray);
-                
                 let maxVolume = -Infinity;
-                for (let i = 0; i < bufferLength; i++) {
-                    if (dataArray[i] > maxVolume) maxVolume = dataArray[i];
-                }
-
+                for (let i = 0; i < bufferLength; i++) { if (dataArray[i] > maxVolume) maxVolume = dataArray[i]; }
                 let detectedFreq = 0;
-
                 if (maxVolume > -85) {
                     let threshold = maxVolume - 5; 
-
                     for (let i = 4; i < bufferLength - 4; i++) {
                         let freq = i * audioCtx.sampleRate / analyser.fftSize;
-                        
-                        // Range fino a 2000Hz per la tua prima corda
                         if (freq > 70 && freq < 2000) {
-                            if (dataArray[i] > threshold && 
-                                dataArray[i] > dataArray[i-1] && 
-                                dataArray[i] > dataArray[i+1]) {
-                                
+                            if (dataArray[i] > threshold && dataArray[i] > dataArray[i-1] && dataArray[i] > dataArray[i+1]) {
                                 if (detectedFreq === 0) {
-                                    let y1 = dataArray[i-1];
-                                    let y2 = dataArray[i];
-                                    let y3 = dataArray[i+1];
+                                    let y1 = dataArray[i-1], y2 = dataArray[i], y3 = dataArray[i+1];
                                     let offset = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-                                    
                                     detectedFreq = (i + offset) * audioCtx.sampleRate / analyser.fftSize;
                                     break; 
                                 }
@@ -164,19 +75,11 @@
                         }
                     }
                 }
-
-                if (detectedFreq > 0) {
-                    freqDisplay.innerHTML = detectedFreq.toFixed(1) + '<span class="unit">Hz</span>';
-                }
-                
+                if (detectedFreq > 0) { freqDisplay.innerHTML = detectedFreq.toFixed(1) + '<span class="unit">Hz</span>'; }
                 requestAnimationFrame(update);
             }
-            
             update();
-            
-        } catch (err) {
-            statusDisplay.innerText = "Errore microfono: " + err.message;
-        }
+        } catch (err) { statusDisplay.innerText = "Error: " + err.message; }
     };
     </script>
 </body>
