@@ -4,20 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accordatore di Precisione</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px; background: #2c3e50; color: white; }
-        .container { background: #34495e; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: inline-block; min-width: 300px; }
-        #freq { font-size: 5em; font-weight: bold; color: #2ecc71; margin: 20px 0; display: block; font-variant-numeric: tabular-nums; }
-        button { padding: 15px 40px; font-size: 1.2em; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 50px; transition: 0.3s; font-weight: bold; }
-        button:hover { background: #c0392b; transform: scale(1.05); }
-        #status { color: #bdc3c7; font-style: italic; margin-top: 20px; }
-        .unit { font-size: 0.4em; color: #95a5a6; }
-    </style>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px; background: #2c3e50; color: white; }
+    .container { background: #34495e; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: inline-block; min-width: 300px; }
+    
+    /* Nuovi stili per il titolo ReGuitar */
+    h1 { 
+        font-family: 'Mistral', 'Brush Script MT', cursive; 
+        font-size: 4em; 
+        color: #ecf0f1; 
+        margin-top: 0;
+        letter-spacing: 2px;
+    }
+
+    #freq { font-size: 5em; font-weight: bold; color: #2ecc71; margin: 20px 0; display: block; font-variant-numeric: tabular-nums; }
+    button { padding: 15px 40px; font-size: 1.2em; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 50px; transition: 0.3s; font-weight: bold; }
+    button:hover { background: #c0392b; transform: scale(1.05); }
+    #status { color: #bdc3c7; font-style: italic; margin-top: 20px; }
+    .unit { font-size: 0.4em; color: #95a5a6; }
+</style>
+    
 </head>
 <body>
 
     <div class="container">
-        <h1>Frequenza Audio</h1>
+       <h1>ReGuitar</h1>
         <button id="startBtn">AVVIA ACCORDATORE</button>
         
         <div>
